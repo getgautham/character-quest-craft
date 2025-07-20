@@ -18,6 +18,10 @@ export default {
 			}
 		},
 		extend: {
+			fontFamily: {
+				'pixel': ['"Press Start 2P"', 'monospace'],
+				'orbitron': ['Orbitron', 'monospace'],
+			},
 			colors: {
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
@@ -61,7 +65,12 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
-				}
+				},
+				'game-pink': 'hsl(var(--game-pink))',
+				'game-blue': 'hsl(var(--game-blue))',
+				'game-purple': 'hsl(var(--game-purple))',
+				'game-yellow': 'hsl(var(--game-yellow))',
+				'game-green': 'hsl(var(--game-green))',
 			},
 			borderRadius: {
 				lg: 'var(--radius)',

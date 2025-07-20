@@ -1,40 +1,58 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Orbitron:wght@400;700;900&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* Gaming Design System with vibrant colors and effects */
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --background: 240 25% 8%;
+    --foreground: 0 0% 98%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: 240 20% 12%;
+    --card-foreground: 0 0% 98%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: 240 20% 10%;
+    --popover-foreground: 0 0% 98%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 330 100% 60%;
+    --primary-foreground: 0 0% 98%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 200 100% 60%;
+    --secondary-foreground: 240 25% 8%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 240 15% 20%;
+    --muted-foreground: 0 0% 70%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 280 100% 70%;
+    --accent-foreground: 240 25% 8%;
 
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 240 15% 25%;
+    --input: 240 15% 15%;
+    --ring: 330 100% 60%;
+
+    /* Gaming specific colors */
+    --game-pink: 330 100% 60%;
+    --game-blue: 200 100% 60%; 
+    --game-purple: 280 100% 70%;
+    --game-yellow: 45 100% 70%;
+    --game-green: 120 100% 60%;
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(var(--game-pink)), hsl(var(--game-purple)));
+    --gradient-secondary: linear-gradient(135deg, hsl(var(--game-blue)), hsl(var(--game-purple)));
+    --gradient-accent: linear-gradient(135deg, hsl(var(--game-yellow)), hsl(var(--game-pink)));
+
+    /* Glows and shadows */
+    --glow-pink: 0 0 20px hsl(var(--game-pink) / 0.5);
+    --glow-blue: 0 0 20px hsl(var(--game-blue) / 0.5);
+    --glow-purple: 0 0 20px hsl(var(--game-purple) / 0.5);
+    --shadow-game: 0 8px 32px hsl(0 0% 0% / 0.3);
 
     --radius: 0.5rem;
 
@@ -101,5 +119,132 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+    font-family: 'Orbitron', monospace;
+  }
+
+  .pixel-font {
+    font-family: 'Press Start 2P', monospace;
+  }
+
+  .orbitron-font {
+    font-family: 'Orbitron', monospace;
+  }
+}
+
+@layer components {
+  /* Gaming Button Styles */
+  .game-button {
+    @apply relative overflow-hidden rounded-lg px-8 py-4 font-bold transition-all duration-300;
+    background: var(--gradient-primary);
+    box-shadow: var(--shadow-game);
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  }
+
+  .game-button:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--glow-pink), var(--shadow-game);
+  }
+
+  .game-button-secondary {
+    @apply relative overflow-hidden rounded-lg px-8 py-4 font-bold transition-all duration-300;
+    background: var(--gradient-secondary);
+    box-shadow: var(--shadow-game);
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  }
+
+  .game-button-secondary:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--glow-blue), var(--shadow-game);
+  }
+
+  /* Gaming Card Styles */
+  .game-card {
+    @apply relative overflow-hidden rounded-xl border-2 bg-card p-6;
+    border-color: hsl(var(--border));
+    box-shadow: var(--shadow-game);
+    backdrop-filter: blur(10px);
+  }
+
+  .game-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--glow-purple), var(--shadow-game);
+  }
+
+  /* Floating Animation */
+  .float-animation {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-20px);
+    }
+  }
+
+  /* Pulse Glow Animation */
+  .pulse-glow {
+    animation: pulseGlow 2s ease-in-out infinite alternate;
+  }
+
+  @keyframes pulseGlow {
+    from {
+      box-shadow: var(--shadow-game);
+    }
+    to {
+      box-shadow: var(--glow-pink), var(--shadow-game);
+    }
+  }
+
+  /* Bounce Animation */
+  .bounce-slow {
+    animation: bounce 2s infinite;
+  }
+
+  /* Text Glow Effect */
+  .text-glow {
+    text-shadow: 0 0 10px hsl(var(--game-pink)), 0 0 20px hsl(var(--game-pink)), 0 0 30px hsl(var(--game-pink));
+  }
+
+  .text-glow-blue {
+    text-shadow: 0 0 10px hsl(var(--game-blue)), 0 0 20px hsl(var(--game-blue)), 0 0 30px hsl(var(--game-blue));
+  }
+
+  /* Gradient Text */
+  .gradient-text {
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Star Field Background */
+  .star-field {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+  }
+
+  .star {
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    background: white;
+    border-radius: 50%;
+    animation: twinkle 3s ease-in-out infinite;
+  }
+
+  @keyframes twinkle {
+    0%, 100% {
+      opacity: 0;
+    }
+    50% {
+      opacity: 1;
+    }
   }
 }
