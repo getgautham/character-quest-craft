@@ -27,6 +27,7 @@ const GameMenu: React.FC<GameMenuProps> = ({
   const menuItems: MenuItem[] = [
     { id: 'start', label: 'START GAME', action: onStartGame, enabled: true },
     { id: 'character', label: 'CHARACTER SELECT', action: onSelectCharacter, enabled: true },
+    { id: 'merch', label: '🛍️ MERCH STORE', action: () => window.open('https://ziggyandzoop.com', '_blank'), enabled: true },
     { id: 'leaderboard', label: 'LEADERBOARD', action: onViewLeaderboard, enabled: true },
     { id: 'settings', label: 'SETTINGS', action: onSettings, enabled: true },
     { id: 'quit', label: 'QUIT GAME', action: () => {}, enabled: true }
@@ -115,6 +116,20 @@ const GameMenu: React.FC<GameMenuProps> = ({
           </div>
         </CardContent>
       </Card>
+
+      {/* Promo Banner */}
+      <div className="max-w-md mx-auto mt-8 mb-4">
+        <Card className="border-4 border-game-pink bg-gradient-to-r from-game-purple/20 to-game-pink/20 overflow-hidden">
+          <CardContent className="p-4 text-center relative">
+            <div className="text-game-pink text-sm font-bold pixel-text-glow mb-1">🎉 MERCH LAUNCH SPECIAL! 🎉</div>
+            <div className="text-xs pixel-text-outline mb-2">Get 10% off at ziggyandzoop.com</div>
+            <div className="bg-game-yellow text-black px-3 py-1 rounded text-xs font-bold mx-auto inline-block">
+              CODE: LAUNCH10
+            </div>
+            <div className="absolute top-1 right-1 text-xs blink">✨</div>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Game Stats Preview */}
       <div className="grid grid-cols-3 gap-4 max-w-lg mx-auto mt-8">
