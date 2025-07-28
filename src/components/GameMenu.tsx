@@ -12,14 +12,14 @@ interface GameMenuProps {
   onStartGame: () => void;
   onSelectCharacter: () => void;
   onViewLeaderboard: () => void;
-  onSettings: () => void;
+  onViewInstagram: () => void;
 }
 
-const GameMenu: React.FC<GameMenuProps> = ({
-  onStartGame,
-  onSelectCharacter,
-  onViewLeaderboard,
-  onSettings
+const GameMenu: React.FC<GameMenuProps> = ({ 
+  onStartGame, 
+  onSelectCharacter, 
+  onViewLeaderboard, 
+  onViewInstagram
 }) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
@@ -28,8 +28,7 @@ const GameMenu: React.FC<GameMenuProps> = ({
     { id: 'start', label: 'START GAME', action: onStartGame, enabled: true },
     { id: 'character', label: 'CHARACTER SELECT', action: onSelectCharacter, enabled: true },
     { id: 'merch', label: '🛍️ MERCH STORE', action: () => window.open('https://ziggyandzoop.com', '_blank'), enabled: true },
-    { id: 'leaderboard', label: 'LEADERBOARD', action: onViewLeaderboard, enabled: true },
-    { id: 'settings', label: 'SETTINGS', action: onSettings, enabled: true },
+    { id: 'instagram', label: '📸 FOLLOW US', action: onViewInstagram, enabled: true },
     { id: 'quit', label: 'QUIT GAME', action: () => {}, enabled: true }
   ];
 
@@ -117,18 +116,16 @@ const GameMenu: React.FC<GameMenuProps> = ({
         </CardContent>
       </Card>
 
-      {/* Promo Banner */}
-      <div className="max-w-md mx-auto mt-8 mb-4">
-        <Card className="border-4 border-game-pink bg-gradient-to-r from-game-purple/20 to-game-pink/20 overflow-hidden">
-          <CardContent className="p-4 text-center relative">
-            <div className="text-game-pink text-sm font-bold pixel-text-glow mb-1">🎉 MERCH LAUNCH SPECIAL! 🎉</div>
-            <div className="text-xs pixel-text-outline mb-2">Get 10% off at ziggyandzoop.com</div>
-            <div className="bg-game-yellow text-black px-3 py-1 rounded text-xs font-bold mx-auto inline-block">
-              CODE: LAUNCH10
-            </div>
-            <div className="absolute top-1 right-1 text-xs blink">✨</div>
-          </CardContent>
-        </Card>
+      {/* Promotional Banner */}
+      <div 
+        className="mt-6 p-4 bg-gradient-to-r from-game-pink to-game-purple rounded-lg border-2 border-white cursor-pointer hover:scale-105 transition-transform max-w-md mx-auto"
+        onClick={() => window.open('https://ziggyandzoop.com', '_blank')}
+      >
+        <div className="text-center">
+          <div className="text-sm pixel-text-glow text-white">🛍️ SPECIAL LAUNCH OFFER! 🛍️</div>
+          <div className="text-xs text-white/90 mt-1">Get 10% off with code: <span className="font-bold text-game-yellow">LAUNCH10</span></div>
+          <div className="text-xs text-white/80">Click here to shop merch! (^_−)−☆</div>
+        </div>
       </div>
 
       {/* Game Stats Preview */}

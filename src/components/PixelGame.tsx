@@ -4,7 +4,7 @@ import GameMenu from '@/components/GameMenu';
 import CharacterSelect from '@/components/CharacterSelect';
 import GameHUD from '@/components/GameHUD';
 
-type GameState = 'menu' | 'character-select' | 'playing' | 'leaderboard' | 'settings';
+type GameState = 'menu' | 'character-select' | 'playing' | 'instagram' | 'settings';
 
 interface Character {
   id: string;
@@ -45,8 +45,8 @@ const PixelGame = () => {
     }, 1000);
   };
 
-  const handleViewLeaderboard = () => {
-    setGameState('leaderboard');
+  const handleViewInstagram = () => {
+    window.open('https://instagram.com/ziggyandzoop', '_blank');
   };
 
   const handleSettings = () => {
@@ -64,8 +64,8 @@ const PixelGame = () => {
           <GameMenu
             onStartGame={handleStartGame}
             onSelectCharacter={handleSelectCharacter}
-            onViewLeaderboard={handleViewLeaderboard}
-            onSettings={handleSettings}
+          onViewLeaderboard={handleViewInstagram}
+          onViewInstagram={handleViewInstagram}
           />
         );
       
@@ -98,36 +98,17 @@ const PixelGame = () => {
           </div>
         );
       
-      case 'leaderboard':
+      case 'instagram':
         return (
-          <div className="game-screen p-8 crt-effect min-h-screen flex flex-col justify-center">
+          <div className="text-center text-white p-8">
+            <h2 className="text-2xl pixel-text-glow mb-4">Follow us on Instagram!</h2>
+            <p className="mb-4">@ziggyandzoop</p>
             <button 
               onClick={handleBackToMenu}
-              className="absolute top-4 left-4 z-10 pixel-button px-4 py-2 text-xs"
+              className="pixel-button px-6 py-2"
             >
-              ← BACK
+              BACK TO MENU
             </button>
-            <div className="text-center">
-              <h2 className="text-4xl pixel-text-glow mb-8">LEADERBOARD</h2>
-              <div className="max-w-md mx-auto space-y-4">
-                {[
-                  { rank: 1, name: "ZIGGY_MASTER", score: 99999, character: "🐱" },
-                  { rank: 2, name: "ZOOP_HERO", score: 89999, character: "🐰" },
-                  { rank: 3, name: "PIXEL_KING", score: 79999, character: "🦄" },
-                  { rank: 4, name: "RETRO_ACE", score: 69999, character: "🐱" },
-                  { rank: 5, name: "GAME_LORD", score: 59999, character: "🐰" }
-                ].map(player => (
-                  <div key={player.rank} className="flex items-center justify-between border-2 border-white p-3 bg-background">
-                    <div className="flex items-center gap-3">
-                      <span className="text-game-yellow pixel-text-outline">#{player.rank}</span>
-                      <span className="text-xl">{player.character}</span>
-                      <span className="pixel-text-outline">{player.name}</span>
-                    </div>
-                    <span className="text-game-pink font-bold">{player.score.toLocaleString()}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
           </div>
         );
       
