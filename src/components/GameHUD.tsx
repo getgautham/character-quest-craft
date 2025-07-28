@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import ziggySprite from '@/assets/ziggy-sprite.png';
 
 interface GameState {
   score: number;
@@ -214,7 +215,7 @@ const GameHUD = () => {
 
             {/* Ziggy Character */}
             <div
-              className="absolute text-4xl transition-none"
+              className="absolute transition-none"
               style={{ 
                 left: '100px', 
                 top: `${character.y}px`,
@@ -223,7 +224,12 @@ const GameHUD = () => {
                 transition: 'transform 0.1s ease'
               }}
             >
-              🐱
+              <img 
+                src={ziggySprite} 
+                alt="Ziggy" 
+                className="w-10 h-10 pixel-perfect"
+                style={{ imageRendering: 'pixelated' }}
+              />
             </div>
 
             {/* Obstacles (Cacti) */}
