@@ -1,126 +1,166 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface GameState {
-  health: number;
-  mana: number;
   score: number;
-  level: number;
-  exp: number;
-  coins: number;
+  distance: number;
+  isGameOver: boolean;
+  speed: number;
 }
 
 interface Character {
-  id: string;
-  name: string;
-  x: number;
   y: number;
-  sprite: string;
-  color: string;
+  isJumping: boolean;
+  velocity: number;
+}
+
+interface Obstacle {
+  x: number;
+  width: number;
+  height: number;
 }
 
 const GameHUD = () => {
   const [gameState, setGameState] = useState<GameState>({
-    health: 100,
-    mana: 80,
-    score: 12450,
-    level: 7,
-    exp: 65,
-    coins: 2847
+    score: 0,
+    distance: 0,
+    isGameOver: false,
+    speed: 3
   });
 
   const [character, setCharacter] = useState<Character>({
-    id: 'ziggy',
-    name: 'ZIGGY',
-    x: 50,
-    y: 50,
-    sprite: '🐱',
-    color: 'game-blue'
+    y: 240, // ground level
+    isJumping: false,
+    velocity: 0
   });
 
+  const [obstacles, setObstacles] = useState<Obstacle[]>([]);
   const [isPlaying, setIsPlaying] = useState(false);
   const gameAreaRef = useRef<HTMLDivElement>(null);
-  const [keys, setKeys] = useState<Set<string>>(new Set());
+  const gameLoopRef = useRef<number>();
 
-  // Handle keyboard input
+  // Handle jump input
+  const jump = useCallback(() => {
+    if (!character.isJumping && !gameState.isGameOver) {
+      setCharacter(prev => ({
+        ...prev,
+        isJumping: true,
+        velocity: -12 // jump force
+      }));
+    }
+  }, [character.isJumping, gameState.isGameOver]);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      setKeys(prev => new Set(prev).add(e.key.toLowerCase()));
-    };
-
-    const handleKeyUp = (e: KeyboardEvent) => {
-      setKeys(prev => {
-        const newKeys = new Set(prev);
-        newKeys.delete(e.key.toLowerCase());
-        return newKeys;
-      });
+      if (e.code === 'Space' || e.code === 'ArrowUp') {
+        e.preventDefault();
+        jump();
+      }
     };
 
     window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('keyup', handleKeyUp);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [jump]);
 
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('keyup', handleKeyUp);
-    };
-  }, []);
-
-  // Character movement
+  // Game physics and collision detection
   useEffect(() => {
-    if (!isPlaying) return;
+    if (!isPlaying || gameState.isGameOver) return;
 
-    const moveCharacter = () => {
+    const gameLoop = () => {
+      // Update character physics
       setCharacter(prev => {
-        let newX = prev.x;
         let newY = prev.y;
-        const speed = 2;
+        let newVelocity = prev.velocity;
+        let isJumping = prev.isJumping;
 
-        if (keys.has('arrowleft') || keys.has('a')) newX = Math.max(0, newX - speed);
-        if (keys.has('arrowright') || keys.has('d')) newX = Math.min(92, newX + speed);
-        if (keys.has('arrowup') || keys.has('w')) newY = Math.max(0, newY - speed);
-        if (keys.has('arrowdown') || keys.has('s')) newY = Math.min(88, newY + speed);
+        if (isJumping) {
+          newY += newVelocity;
+          newVelocity += 0.8; // gravity
 
-        return { ...prev, x: newX, y: newY };
+          // Ground collision
+          if (newY >= 240) {
+            newY = 240;
+            isJumping = false;
+            newVelocity = 0;
+          }
+        }
+
+        return { ...prev, y: newY, velocity: newVelocity, isJumping };
+      });
+
+      // Update obstacles
+      setObstacles(prev => {
+        const updated = prev.map(obs => ({ ...obs, x: obs.x - gameState.speed }))
+          .filter(obs => obs.x + obs.width > 0);
+
+        // Add new obstacles
+        if (updated.length === 0 || updated[updated.length - 1].x < 600) {
+          updated.push({
+            x: 800,
+            width: 30,
+            height: 60
+          });
+        }
+
+        return updated;
+      });
+
+      // Update score and speed
+      setGameState(prev => ({
+        ...prev,
+        distance: prev.distance + 1,
+        score: Math.floor(prev.distance / 10),
+        speed: Math.min(8, 3 + prev.distance / 1000)
+      }));
+
+      // Check collisions
+      const characterRect = { x: 100, y: character.y, width: 40, height: 40 };
+      
+      obstacles.forEach(obstacle => {
+        const obstacleRect = { x: obstacle.x, y: 300 - obstacle.height, width: obstacle.width, height: obstacle.height };
+        
+        if (characterRect.x < obstacleRect.x + obstacleRect.width &&
+            characterRect.x + characterRect.width > obstacleRect.x &&
+            characterRect.y < obstacleRect.y + obstacleRect.height &&
+            characterRect.y + characterRect.height > obstacleRect.y) {
+          setGameState(prev => ({ ...prev, isGameOver: true }));
+        }
       });
     };
 
-    const gameLoop = setInterval(moveCharacter, 16); // 60fps
-    return () => clearInterval(gameLoop);
-  }, [keys, isPlaying]);
-
-  // Simulate game events
-  useEffect(() => {
-    if (!isPlaying) return;
-
-    const gameEvents = setInterval(() => {
-      // Random events
-      if (Math.random() < 0.1) {
-        setGameState(prev => ({
-          ...prev,
-          score: prev.score + Math.floor(Math.random() * 100) + 10,
-          coins: prev.coins + Math.floor(Math.random() * 5) + 1
-        }));
+    gameLoopRef.current = requestAnimationFrame(function loop() {
+      gameLoop();
+      if (isPlaying && !gameState.isGameOver) {
+        gameLoopRef.current = requestAnimationFrame(loop);
       }
+    });
 
-      if (Math.random() < 0.05) {
-        setGameState(prev => ({
-          ...prev,
-          exp: Math.min(100, prev.exp + 1)
-        }));
+    return () => {
+      if (gameLoopRef.current) {
+        cancelAnimationFrame(gameLoopRef.current);
       }
+    };
+  }, [isPlaying, gameState.isGameOver, gameState.speed, character.y, obstacles]);
 
-      if (Math.random() < 0.02) {
-        setGameState(prev => ({
-          ...prev,
-          mana: Math.max(0, prev.mana - 5)
-        }));
-      }
-    }, 500);
-
-    return () => clearInterval(gameEvents);
-  }, [isPlaying]);
+  const resetGame = () => {
+    setGameState({
+      score: 0,
+      distance: 0,
+      isGameOver: false,
+      speed: 3
+    });
+    setCharacter({
+      y: 240,
+      isJumping: false,
+      velocity: 0
+    });
+    setObstacles([]);
+  };
 
   const startGame = () => {
+    if (gameState.isGameOver) {
+      resetGame();
+    }
     setIsPlaying(true);
   };
 
@@ -131,60 +171,25 @@ const GameHUD = () => {
   return (
     <div className="game-screen p-4 crt-effect">
       {/* Game HUD */}
-      <div className="mb-4 grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="mb-4 grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="border-2 border-white bg-background">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-xs text-game-pink pixel-text-outline">HEALTH</CardTitle>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <div className="health-bar">
-              <div 
-                className="health-bar-fill" 
-                style={{ width: `${gameState.health}%` }}
-              />
-            </div>
-            <div className="text-xs mt-1">{gameState.health}/100</div>
+          <CardContent className="p-3 text-center">
+            <div className="text-xs text-game-pink pixel-text-outline">SCORE</div>
+            <div className="text-2xl font-bold text-game-yellow pixel-text-glow">{gameState.score}</div>
           </CardContent>
         </Card>
 
         <Card className="border-2 border-white bg-background">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-xs text-game-blue pixel-text-outline">MANA</CardTitle>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <div className="mana-bar">
-              <div 
-                className="mana-bar-fill" 
-                style={{ width: `${gameState.mana}%` }}
-              />
-            </div>
-            <div className="text-xs mt-1">{gameState.mana}/100</div>
+          <CardContent className="p-3 text-center">
+            <div className="text-xs text-game-blue pixel-text-outline">DISTANCE</div>
+            <div className="text-2xl font-bold text-game-pink pixel-text-glow">{Math.floor(gameState.distance / 10)}m</div>
           </CardContent>
         </Card>
 
         <Card className="border-2 border-white bg-background">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-xs text-game-yellow pixel-text-outline">LEVEL {gameState.level}</CardTitle>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <div className="health-bar">
-              <div 
-                className="health-bar-fill"
-                style={{ 
-                  width: `${gameState.exp}%`,
-                  backgroundColor: 'hsl(var(--exp-bar))'
-                }}
-              />
-            </div>
-            <div className="text-xs mt-1">EXP: {gameState.exp}/100</div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-2 border-white bg-background">
-          <CardContent className="p-2">
-            <div className="text-xs text-game-purple pixel-text-outline">SCORE</div>
-            <div className="text-sm font-bold text-game-pink">{gameState.score.toLocaleString()}</div>
-            <div className="text-xs text-game-yellow">💰 {gameState.coins}</div>
+          <CardContent className="p-3 text-center">
+            <div className="text-xs text-game-purple pixel-text-outline">SPEED</div>
+            <div className="text-2xl font-bold text-game-cyan pixel-text-glow">{gameState.speed.toFixed(1)}x</div>
           </CardContent>
         </Card>
       </div>
@@ -194,51 +199,65 @@ const GameHUD = () => {
         <CardContent className="p-0">
           <div 
             ref={gameAreaRef}
-            className="relative w-full h-96 scrolling-bg"
+            className="relative w-full h-80 scrolling-bg overflow-hidden"
             style={{
-              background: `
-                radial-gradient(circle at 20% 30%, rgba(255, 0, 255, 0.1) 0%, transparent 50%),
-                radial-gradient(circle at 80% 70%, rgba(0, 255, 255, 0.1) 0%, transparent 50%),
-                linear-gradient(45deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)
-              `
+              background: `linear-gradient(180deg, #87CEEB 0%, #98FB98 60%, #8FBC8F 100%)`
             }}
           >
-            {/* Character */}
-            <div
-              className="absolute pixel-character text-4xl transition-all duration-75 pixel-bounce"
-              style={{ 
-                left: `${character.x}%`, 
-                top: `${character.y}%`,
-                filter: 'drop-shadow(2px 2px 0px rgba(0,0,0,0.8))'
-              }}
-            >
-              {character.sprite}
-            </div>
-
-            {/* Collectibles */}
-            <div className="absolute top-4 left-4 text-2xl pixel-bounce">💎</div>
-            <div className="absolute top-8 right-8 text-2xl pixel-bounce" style={{ animationDelay: '0.3s' }}>⭐</div>
-            <div className="absolute bottom-8 left-12 text-2xl pixel-bounce" style={{ animationDelay: '0.6s' }}>🔮</div>
-            <div className="absolute bottom-4 right-4 text-2xl pixel-bounce" style={{ animationDelay: '0.9s' }}>💰</div>
-
-            {/* Grid overlay for pixel effect */}
+            {/* Ground */}
             <div 
-              className="absolute inset-0 opacity-10"
+              className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-green-600 to-green-500"
               style={{
-                backgroundImage: `
-                  linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
-                  linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)
-                `,
-                backgroundSize: '20px 20px'
+                backgroundImage: `repeating-linear-gradient(90deg, transparent, transparent 19px, rgba(0,0,0,0.1) 20px)`
               }}
             />
 
-            {/* Controls hint */}
-            {!isPlaying && (
+            {/* Ziggy Character */}
+            <div
+              className="absolute text-4xl transition-none"
+              style={{ 
+                left: '100px', 
+                top: `${character.y}px`,
+                filter: 'drop-shadow(2px 2px 0px rgba(0,0,0,0.8))',
+                transform: character.isJumping ? 'rotate(-10deg)' : 'rotate(0deg)',
+                transition: 'transform 0.1s ease'
+              }}
+            >
+              🐱
+            </div>
+
+            {/* Obstacles (Cacti) */}
+            {obstacles.map((obstacle, index) => (
+              <div
+                key={index}
+                className="absolute text-4xl"
+                style={{
+                  left: `${obstacle.x}px`,
+                  top: `${300 - obstacle.height}px`,
+                  filter: 'drop-shadow(2px 2px 0px rgba(0,0,0,0.8))'
+                }}
+              >
+                🌵
+              </div>
+            ))}
+
+            {/* Game Over Overlay */}
+            {gameState.isGameOver && (
+              <div className="absolute inset-0 flex items-center justify-center bg-black/70">
+                <div className="text-center">
+                  <div className="text-3xl mb-4 pixel-text-glow text-game-pink">GAME OVER</div>
+                  <div className="text-lg mb-2 pixel-text-outline">Final Score: {gameState.score}</div>
+                  <div className="text-sm pixel-text-outline">Distance: {Math.floor(gameState.distance / 10)}m</div>
+                </div>
+              </div>
+            )}
+
+            {/* Start Game Overlay */}
+            {!isPlaying && !gameState.isGameOver && (
               <div className="absolute inset-0 flex items-center justify-center bg-black/50">
                 <div className="text-center">
-                  <div className="text-2xl mb-4 pixel-text-glow blink">PRESS START</div>
-                  <div className="text-xs pixel-text-outline">USE WASD OR ARROW KEYS TO MOVE</div>
+                  <div className="text-2xl mb-4 pixel-text-glow blink">ZIGGY RUNNER</div>
+                  <div className="text-xs pixel-text-outline">PRESS SPACE OR ↑ TO JUMP</div>
                 </div>
               </div>
             )}
@@ -248,12 +267,12 @@ const GameHUD = () => {
 
       {/* Game Controls */}
       <div className="mt-4 flex justify-center gap-4">
-        {!isPlaying ? (
+        {!isPlaying || gameState.isGameOver ? (
           <button 
             onClick={startGame}
             className="pixel-button-primary px-8 py-2 text-sm"
           >
-            START GAME
+            {gameState.isGameOver ? 'PLAY AGAIN' : 'START GAME'}
           </button>
         ) : (
           <button 
@@ -264,15 +283,18 @@ const GameHUD = () => {
           </button>
         )}
         
-        <button className="pixel-button px-8 py-2 text-sm">
-          SETTINGS
+        <button 
+          onClick={() => window.open('https://ziggyandzoop.com', '_blank')}
+          className="pixel-button px-6 py-2 text-sm"
+        >
+          🛍️ SHOP
         </button>
       </div>
 
-      {/* Character Info */}
+      {/* Instructions */}
       <div className="mt-4 text-center">
-        <div className="text-sm pixel-text-outline">CONTROLLING: {character.name}</div>
-        <div className="text-xs text-game-purple">Position: ({Math.floor(character.x)}, {Math.floor(character.y)})</div>
+        <div className="text-sm pixel-text-outline">Help Ziggy avoid the cacti! 🌵</div>
+        <div className="text-xs text-game-purple">Press SPACE or ↑ to jump • Get merch with code: LAUNCH10</div>
       </div>
     </div>
   );
